@@ -60,6 +60,14 @@ namadac transparent-transfer  --source faucet-1 --target namada-1-wallet --amoun
 for more information about commands, check the [official docs](https://docs.namada.net/users)
 
 # Hermes and IBC transfers
+
+> [!WARNING]
+> **The Hermes setup has not been tested in a long time and may not work in this repository.**
+> It has not been re-validated against recent Namada releases (including the current `v201.0.9`),
+> and the pinned Hermes version has not been bumped alongside the Namada upgrades. Expect the
+> `hermes` profile, chain-b bootstrap, and the IBC channel setup to need fixing before they work.
+> The `main` profile (3-validator Namada network) is the supported path.
+
 To test hermes on a Namada <> Namada channel , we need another instance of namada blockchain. this is included under hermes profile in docker compose file.   
 To run chain B and the hermes container    
 

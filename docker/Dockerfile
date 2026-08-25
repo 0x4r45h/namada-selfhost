@@ -6,7 +6,9 @@ RUN rustup target add wasm32-unknown-unknown
 
 RUN apt-get update && apt-get install -y \
     build-essential \
+    clang \
     clang-tools-14 \
+    llvm \
     git \
     libssl-dev \
     pkg-config \
@@ -20,7 +22,7 @@ RUN tar -xf /tmp/binaryen.tar.gz
 RUN mv binaryen-version_*/bin/wasm-opt /usr/local/bin
 
 ARG NAMADA_TAG=main
-RUN git clone https://github.com/anoma/namada.git
+RUN git clone https://github.com/namada-net/namada.git
 WORKDIR /__w/namada/namada
 RUN git checkout ${NAMADA_TAG}
 
@@ -30,7 +32,7 @@ RUN make build-wasm-scripts
 FROM golang:1.23-bookworm AS cometbft-builder
 WORKDIR /app
 
-RUN git clone -b v0.37.15 https://github.com/cometbft/cometbft.git
+RUN git clone -b v0.37.16 https://github.com/cometbft/cometbft.git
 WORKDIR cometbft
 RUN make build
 
