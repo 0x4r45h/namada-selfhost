@@ -1,7 +1,7 @@
 # Namada Self Host
 This repository helps to quickly spin up a local version of namada blockchain and some ecosystem services and tools in a matter of seconds.    
 Including : 
-- A Namada blockchain with 3 validators
+- A Namada blockchain with 3 validators (configurable, see [Changing the number of validators](#changing-the-number-of-validators))
 - Hermes for IBC transfer (by running a second namada blockchain called chain-b)
 
 
@@ -36,6 +36,35 @@ To start the blockchain with 3 validators
 docker compose --profile main up -d
 ```
 for the first time launching it give it 1-2 min to download necessary files and setup the chain. then you can use it   
+
+## Changing the number of validators
+
+The network runs 3 validators by default. To use a different number:
+
+```shell
+./scripts/set-validators.sh 6
+```
+
+This sets `VALIDATOR_COUNT` in your `.env` and generates a `docker-compose.override.yml`
+that Compose picks up automatically, so the usual commands keep working unchanged:
+
+```shell
+docker compose --profile main up -d
+```
+
+Counts below 3 also work (`./scripts/set-validators.sh 1` gives a single-validator chain);
+the surplus validators are moved out of the `main` profile rather than removed. Running
+`./scripts/set-validators.sh 3` restores the default and deletes the override file.
+
+> [!IMPORTANT]
+> The validator set is fixed at genesis, so a change only takes effect on a **fresh**
+> network. Tear the old one down first:
+> ```shell
+> docker compose --profile main down -v -t 0
+> ```
+
+`docker-compose.yml` is never modified by the script, and the generated override file is
+gitignored.
 
 #### Check logs
 ```shell

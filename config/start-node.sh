@@ -2,17 +2,32 @@
 
 namada --version
 
+# number of genesis validators in the network; see scripts/set-validators.sh
+export VALIDATOR_COUNT=${VALIDATOR_COUNT:-3}
+
 # clean up the http server when the script exits
 cleanup() {
   pkill -f "/serve"
   pkill -f "python3 -m http.server --directory /root/.local/share/namada"
 }
+# true once every validator has copied its signed transactions.toml to the shared volume.
+# note we wait on the file, not the directory: the directory is created before the
+# signed transactions are copied into it, so waiting on it would be racy.
+all_validator_txs_ready() {
+  for i in $(seq 1 "$VALIDATOR_COUNT"); do
+    if [ ! -f "/root/.namada-shared/namada-$i/transactions.toml" ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
 generate_chain_configs() {
   # check if configs are already generated, prevent running them again if containers are restarted
     if [ ! -f "/root/.namada-shared/chain.config" ]; then
       # wait until all validator configs have been written
-      while [ ! -d "/root/.namada-shared/namada-1" ] || [ ! -d "/root/.namada-shared/namada-2" ] || [ ! -d "/root/.namada-shared/namada-3" ]; do
-        echo "Validator configs not ready. Sleeping for 5s..."
+      while ! all_validator_txs_ready; do
+        echo "Validator configs not ready (waiting for $VALIDATOR_COUNT validators). Sleeping for 5s..."
         sleep 5
       done
 
@@ -51,9 +66,9 @@ generate_chain_configs() {
 
       # add all signed genesis transactions to a final transactions.toml
       # TODO: move to python script
-      cat /root/.namada-shared/namada-1/transactions.toml >>/root/.namada-shared/genesis/transactions.toml
-      cat /root/.namada-shared/namada-2/transactions.toml >>/root/.namada-shared/genesis/transactions.toml
-      cat /root/.namada-shared/namada-3/transactions.toml >>/root/.namada-shared/genesis/transactions.toml
+      for i in $(seq 1 "$VALIDATOR_COUNT"); do
+        cat /root/.namada-shared/namada-$i/transactions.toml >>/root/.namada-shared/genesis/transactions.toml
+      done
       cat /root/.namada-shared/$STEWARD_ALIAS/transactions.toml >>/root/.namada-shared/genesis/transactions.toml
 
       python3 /scripts/make_balances.py /root/.namada-shared /genesis/balances.toml /root/.namada-shared/genesis/balances.toml

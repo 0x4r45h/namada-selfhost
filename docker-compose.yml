@@ -29,6 +29,8 @@ services:
     environment:
       - GENESIS_DELAY=${GENESIS_DELAY}
       - EXTERNAL_IP=${EXTERNAL_IP}
+      # namada-1 coordinates genesis, so it needs to know how many validators to wait for
+      - VALIDATOR_COUNT=${VALIDATOR_COUNT:-3}
     ports:
       - "${P2P_PORT}:26656" # p2p
       - "${RPC_PORT}:26657" # http rpc
